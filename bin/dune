@@ -1,4 +1,4 @@
 (executable
  (name main)
  (public_name exa-ocaml-search)
- (libraries exa_search))
+ (libraries yojson cohttp-async envlib))

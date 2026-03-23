@@ -9,14 +9,15 @@
 
 (authors "Juan Bautista <deserd@protonmail.com>")
 
+(maintainers "Juan Bautista <deserd@protonmail.com>")
+
 (license MIT)
 
 (package
  (name exa-ocaml-search)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml core base utop cmdliner)
+ (synopsis "CLI search tool powered by the Exa API")
+ (description
+  "A command-line utility for searching the web using the Exa API. Accepts query strings via -q flag, authenticates with API key from .env, and returns formatted search results.")
+ (depends ocaml async_ssl yojson cohttp-async)
  (tags
-  ("add topics" "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
+  ("cli" "search" "exa" "api" "async")))
