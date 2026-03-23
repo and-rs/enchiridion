@@ -1,7 +1,6 @@
 open Async
 open Cohttp
 open Cohttp_async
-open Yojson.Basic.Util
 
 let query_flag =
   let open Command.Param in
@@ -26,19 +25,23 @@ let exa_search (query : string) (key : string) =
 
 let api_key = Envlib.read_env "EXA_API_KEY" ()
 
-let query_function =
-  Command.Param.map query_flag ~f:(fun query () ->
-      exa_search query api_key >>= fun (_, body) ->
-      Body.to_string body >>= fun body_string ->
-      Yojson.Basic.from_string body_string
-      |> member "results" |> to_list
-      |> List.iter (fun r ->
-          r |> member "summary" |> to_string |> print_endline);
-      Async.return ())
+let request_handler query =
+  let open Yojson.Basic in
+  let file_cache = "test.json" in
+  Sys.file_exists file_cache >>= fun check ->
+  if check = `Yes then (
+    Reader.file_contents file_cache >>= fun json ->
+    from_string json |> Util.member "results" |> to_string |> print_endline;
+    Deferred.return ())
+  else
+    exa_search query api_key >>= fun (_, body) ->
+    Body.to_string body >>= fun json ->
+    from_string json |> Util.member "results" |> to_string |> print_endline;
+    Deferred.return ()
 
 let command =
   Command.async ~summary:"query passed with -q"
     ~readme:(fun () -> "Tha information")
-    query_function
+    (Command.Param.map query_flag ~f:(fun query () -> request_handler query))
 
 let () = Command_unix.run ~version:"0.1" ~build_info:"Idk" command
