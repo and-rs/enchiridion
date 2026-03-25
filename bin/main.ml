@@ -58,11 +58,13 @@ let request_handler query =
 
 let query_flag =
   let open Command.Param in
-  flag "-q" (required string) ~doc:"Pass a search query"
+  flag "-q" (required string) ~doc:"Query; Query for the semantic search"
 
 let command =
-  Command.async ~summary:"query passed with -q"
-    ~readme:(fun () -> "Tha information")
+  Command.async ~summary:"Search the web using Exa AI"
+    ~readme:(fun () ->
+      "Performs a semantic search query against the Exa API. Requires \
+       EXA_API_KEY environment variable.")
     (Command.Param.map query_flag ~f:(fun query () -> request_handler query))
 
-let () = Command_unix.run ~version:"0.1" ~build_info:"Idk" command
+let () = Command_unix.run ~version:"v0.0.1" ~build_info:"dev" command
