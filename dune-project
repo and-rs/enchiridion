@@ -1,11 +1,11 @@
 (lang dune 3.20)
 
-(name exa-ocaml-search)
+(name enchiridion)
 
 (generate_opam_files true)
 
 (source
- (github and-rs/exa-ocaml-search))
+ (github and-rs/enchiridion))
 
 (authors "Juan Bautista <deserd@protonmail.com>")
 
@@ -14,10 +14,10 @@
 (license MIT)
 
 (package
- (name exa-ocaml-search)
- (synopsis "CLI search tool powered by the Exa API")
+ (name enchiridion)
+ (synopsis "Unix-style AI orchestrator and terminal dataflow pipeline")
  (description
-  "A command-line utility for searching the web using the Exa API. Accepts query strings via -q flag, authenticates with API key from .env, and returns formatted search results.")
+  "Enchiridion is a pure Unix dataflow CLI for interacting with LLMs. It parses plain-text Markdown session files, streams Server-Sent Events (SSE) directly to stdout, and dynamically augments context using the Exa search API. Designed strictly for editor integration and terminal command generation.")
  (depends ocaml async_ssl yojson cohttp-async)
  (tags
-  ("cli" "search" "exa" "api" "async")))
+  ("cli" "ai" "llm" "exa" "search" "async")))

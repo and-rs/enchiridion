@@ -1,4 +1,4 @@
 (executable
  (name main)
- (public_name exa-ocaml-search)
+ (public_name enchiridion)
  (libraries yojson cohttp-async envlib))

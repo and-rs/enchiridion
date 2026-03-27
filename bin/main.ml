@@ -37,10 +37,15 @@ let parse_json j =
 
 let format_terminal list =
   let open Core.Printf in
-  List.iter
-    (fun r ->
-      printf "\n\n#------# \ntitle: %s\nurl: %s\nhighlights:\n%s" r.title r.url
-        (String.concat " --- " r.highlights))
+  List.iteri
+    (fun i l ->
+      printf "\n\n--- result #%d --- \ntitle: %s\nurl: %s\nhighlights:\n%s"
+        (i + 1) l.title l.url
+        (String.concat "\n"
+           (List.mapi
+              (fun i s ->
+                Printf.sprintf "--- highlight #%d ---\n\n%s" (i + 1) s)
+              l.highlights)))
     list
 
 let request_handler query =
@@ -48,7 +53,7 @@ let request_handler query =
   Sys.file_exists file_cache >>= fun check ->
   if check = `Yes then (
     Reader.file_contents file_cache >>= fun j ->
-    parse_json j |> format_terminal;
+    print_endline j;
     Deferred.return ())
   else
     exa_search query api_key >>= fun (_, body) ->
@@ -61,10 +66,13 @@ let query_flag =
   flag "-q" (required string) ~doc:"Query; Query for the semantic search"
 
 let command =
-  Command.async ~summary:"Search the web using Exa AI"
+  Command.async
+    ~summary:"Enchiridion: Unix-style AI orchestrator and dataflow pipeline"
     ~readme:(fun () ->
-      "Performs a semantic search query against the Exa API. Requires \
-       EXA_API_KEY environment variable.")
+      "Executes LLM prompts via the OpenAI API schema, processing \
+       Markdown-based session files and streaming SSE responses to stdout. \
+       Supports context augmentation via Exa Search. Requires relevant API \
+       keys in the environment.")
     (Command.Param.map query_flag ~f:(fun query () -> request_handler query))
 
 let () = Command_unix.run ~version:"v0.0.1" ~build_info:"dev" command
