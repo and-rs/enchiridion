@@ -1,4 +1,5 @@
 (executable
  (name main)
  (public_name enchiridion)
- (libraries yojson cohttp-async envlib))
+ (libraries yojson cohttp-async envlib)
+ (preprocess (pps ppx_jane)))

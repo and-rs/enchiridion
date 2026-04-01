@@ -2,7 +2,7 @@ open Async
 open Cohttp
 open Cohttp_async
 
-let api_key = Envlib.read_env "EXA_API_KEY" ()
+let api_key = Envlib.get_setting "EXA_API_KEY"
 
 let exa_search (query : string) (key : string) =
   let init_headers = Header.init_with "Content-Type" "application/json" in
@@ -11,13 +11,13 @@ let exa_search (query : string) (key : string) =
     Cohttp_async.Body.of_string
       (Yojson.Safe.to_string
          (`Assoc
-            [
-              ("query", `String query);
-              ("type", `String "auto");
-              ( "contents",
-                `Assoc
-                  [ ("highlights", `Assoc [ ("maxCharacters", `Int 4000) ]) ] );
-            ]))
+           [
+             ("query", `String query);
+             ("type", `String "auto");
+             ( "contents",
+               `Assoc
+                 [ ("highlights", `Assoc [ ("maxCharacters", `Int 4000) ]) ] );
+           ]))
   in
   Client.post ~headers ~body (Uri.of_string "https://api.exa.ai/search")
 
@@ -48,10 +48,10 @@ let format_terminal list =
               l.highlights)))
     list
 
-let request_handler query =
+let request_handler (query : string) (test : bool) =
   let file_cache = "test.json" in
   Sys.file_exists file_cache >>= fun check ->
-  if check = `Yes then (
+  if check = `Yes && test then (
     Reader.file_contents file_cache >>= fun j ->
     print_endline j;
     Deferred.return ())
@@ -61,10 +61,6 @@ let request_handler query =
     Writer.save file_cache ~contents:j >>| fun () ->
     parse_json j |> format_terminal
 
-let query_flag =
-  let open Command.Param in
-  flag "-q" (required string) ~doc:"Query; Query for the semantic search"
-
 let command =
   Command.async
     ~summary:"Enchiridion: Unix-style AI orchestrator and dataflow pipeline"
@@ -73,6 +69,15 @@ let command =
        Markdown-based session files and streaming SSE responses to stdout. \
        Supports context augmentation via Exa Search. Requires relevant API \
        keys in the environment.")
-    (Command.Param.map query_flag ~f:(fun query () -> request_handler query))
+    Command.Param.(
+      return (fun query test () ->
+          Openai.test_print "my final message change the worls";
+          request_handler query test)
+      <*> flag "-q" (required string)
+            ~doc:"Query; Query for the semantic search"
+      <*> flag "--test" no_arg
+            ~doc:
+              "Testing; Caches the search result in test.json to explore \
+               format & state better")
 
 let () = Command_unix.run ~version:"v0.0.1" ~build_info:"dev" command
