@@ -19,6 +19,7 @@
         system:
         let
           pkgs = pkgsFor system;
+          clangWrapper = pkgs.clangStdenv.cc;
 
           wrapCC =
             name: target:
@@ -30,7 +31,7 @@
                 esac
               done
               if [ "$is_cxx" -eq 1 ]; then
-                exec ${target} "$@" -std=c++14
+                exec ${target} "$@" -std=c++17
               else
                 exec ${target} "$@"
               fi
@@ -39,25 +40,28 @@
           wrapCXX =
             name: target:
             pkgs.writeShellScriptBin name ''
-              exec ${target} "$@" -std=c++14
+              exec ${target} "$@" -std=c++17
             '';
         in
         {
-          default = pkgs.mkShell {
+          default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
             packages = with pkgs; [
-              (wrapCC "clang" "${pkgs.stdenv.cc}/bin/clang")
-              (wrapCC "cc" "${pkgs.stdenv.cc}/bin/clang")
-              (wrapCC "gcc" "${pkgs.stdenv.cc}/bin/clang")
-              (wrapCXX "clang++" "${pkgs.stdenv.cc}/bin/clang++")
-              (wrapCXX "c++" "${pkgs.stdenv.cc}/bin/clang++")
-              (wrapCXX "g++" "${pkgs.stdenv.cc}/bin/clang++")
-
+              (wrapCC "clang" "${clangWrapper}/bin/clang")
+              (wrapCC "cc" "${clangWrapper}/bin/clang")
+              (wrapCC "gcc" "${clangWrapper}/bin/clang")
+              (wrapCXX "clang++" "${clangWrapper}/bin/clang++")
+              (wrapCXX "c++" "${clangWrapper}/bin/clang++")
+              (wrapCXX "g++" "${clangWrapper}/bin/clang++")
               pkg-config
               autoconf
               openssl
               libffi
               opam
               gmp
+            ];
+
+            buildInputs = with pkgs; [
+              llvmPackages.libcxx
             ];
 
             NIX_CFLAGS_COMPILE = "-Wno-error=int-conversion -Wno-error=incompatible-pointer-types";
