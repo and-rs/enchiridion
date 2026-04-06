@@ -9,6 +9,9 @@ switch-remove:
 install:
     opam install . --deps-only --with-dev-setup -y
 
+listen:
+    dune build -w
+
 build:
     dune build
 
