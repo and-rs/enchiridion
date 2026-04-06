@@ -70,9 +70,7 @@ let command =
        Supports context augmentation via Exa Search. Requires relevant API \
        keys in the environment.")
     Command.Param.(
-      return (fun query test () ->
-          Openai.test_print "my final message change the worls";
-          request_handler query test)
+      return (fun query test () -> request_handler query test)
       <*> flag "-q" (required string)
             ~doc:"Query; Query for the semantic search"
       <*> flag "--test" no_arg

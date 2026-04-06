@@ -19,37 +19,51 @@
         system:
         let
           pkgs = pkgsFor system;
+
+          wrapCC =
+            name: target:
+            pkgs.writeShellScriptBin name ''
+              is_cxx=0
+              for arg in "$@"; do
+                case "$arg" in
+                  *.cc|*.cpp|*.cxx|-xc++|-std=c++*) is_cxx=1; break ;;
+                esac
+              done
+              if [ "$is_cxx" -eq 1 ]; then
+                exec ${target} "$@" -std=c++14
+              else
+                exec ${target} "$@"
+              fi
+            '';
+
+          wrapCXX =
+            name: target:
+            pkgs.writeShellScriptBin name ''
+              exec ${target} "$@" -std=c++14
+            '';
         in
         {
-          default = pkgs.mkShell.override { stdenv = pkgs.clangStdenv; } {
+          default = pkgs.mkShell {
             packages = with pkgs; [
-              llvmPackages.libcxx
-              llvmPackages.llvm
+              (wrapCC "clang" "${pkgs.stdenv.cc}/bin/clang")
+              (wrapCC "cc" "${pkgs.stdenv.cc}/bin/clang")
+              (wrapCC "gcc" "${pkgs.stdenv.cc}/bin/clang")
+              (wrapCXX "clang++" "${pkgs.stdenv.cc}/bin/clang++")
+              (wrapCXX "c++" "${pkgs.stdenv.cc}/bin/clang++")
+              (wrapCXX "g++" "${pkgs.stdenv.cc}/bin/clang++")
+
               pkg-config
               autoconf
               openssl
               libffi
-              clang
               opam
-              dune
               gmp
             ];
 
+            NIX_CFLAGS_COMPILE = "-Wno-error=int-conversion -Wno-error=incompatible-pointer-types";
+            NIX_LDFLAGS = pkgs.lib.optionalString pkgs.stdenv.isDarwin "-lc++";
+
             shellHook = ''
-              export CC=${pkgs.clang}/bin/clang
-              export CXX=${pkgs.clang}/bin/clang++
-              export CFLAGS="-Wno-error=int-conversion -Wno-error=incompatible-pointer-types"
-
-              if [ -z "$LIBRARY_PATH" ]; then
-                export LIBRARY_PATH=${pkgs.llvmPackages.libcxx}/lib
-              else
-                export LIBRARY_PATH=${pkgs.llvmPackages.libcxx}/lib:$LIBRARY_PATH
-              fi
-
-              export AR=${pkgs.llvmPackages.llvm}/bin/llvm-ar
-              export NM=${pkgs.llvmPackages.llvm}/bin/llvm-nm
-              export RANLIB=${pkgs.llvmPackages.llvm}/bin/llvm-ranlib
-
               if [ ! -d "$HOME/.opam" ]; then
                 opam init --bare --no-setup -y
               fi
