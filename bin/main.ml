@@ -56,10 +56,16 @@ let request_handler (query : string) (test : bool) =
     print_endline j;
     Deferred.return ())
   else
-    exa_search query api_key >>= fun (_, body) ->
+    exa_search query api_key >>= fun (resp, body) ->
+    let status = Cohttp.Response.status resp in
+    let code = Cohttp.Code.code_of_status status in
     Body.to_string body >>= fun j ->
-    Writer.save file_cache ~contents:j >>| fun () ->
-    parse_json j |> format_terminal
+    if not (Cohttp.Code.is_success code) then (
+      print_endline j;
+      Deferred.return ())
+    else
+      Writer.save file_cache ~contents:j >>| fun () ->
+      parse_json j |> format_terminal
 
 let command =
   Command.async

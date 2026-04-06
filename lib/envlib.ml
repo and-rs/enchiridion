@@ -29,7 +29,34 @@ let load_config filepath =
       | _ -> acc)
     ConfigMap.empty lines
 
-let global_config = lazy (load_config ".env")
+let resolve_config_path filename =
+  let candidates =
+    [
+      (match Sys.getenv_opt "ENCHIRIDION_CONFIG_DIR" with
+      | Some dir -> Some (Filename.concat dir filename)
+      | None -> None);
+      (match Sys.getenv_opt "HOME" with
+      | Some home ->
+          Some
+            (Filename.concat
+               (Filename.concat home ".config/enchiridion")
+               filename)
+      | None -> None);
+      Some (Filename.concat "." filename);
+    ]
+  in
+  List.find_map
+    (function Some p when Sys.file_exists p -> Some p | _ -> None)
+    candidates
+
+let global_config =
+  lazy
+    (match resolve_config_path ".env" with
+    | Some path -> load_config path
+    | None ->
+        failwith
+          "Could not locate .env — set ENCHIRIDION_CONFIG_DIR or place .env in \
+           ~/.config/enchiridion/")
 
 let get_setting key =
   let config = Lazy.force global_config in
