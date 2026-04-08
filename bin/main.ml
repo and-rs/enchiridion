@@ -39,13 +39,11 @@ let format_terminal list =
   let open Core.Printf in
   List.iteri
     (fun i l ->
-      printf "\n\n--- result #%d --- \ntitle: %s\nurl: %s\nhighlights:\n%s"
-        (i + 1) l.title l.url
-        (String.concat "\n"
-           (List.mapi
-              (fun i s ->
-                Printf.sprintf "--- highlight #%d ---\n\n%s" (i + 1) s)
-              l.highlights)))
+      printf "\n\n--- result #%d --- \ntitle: %s\nurl: %s\nhighlights:\n"
+        (i + 1) l.title l.url;
+      List.iteri
+        (fun j s -> printf "--- highlight #%d ---\n\n%s\n" (j + 1) s)
+        l.highlights)
     list
 
 let request_handler (query : string) (test : bool) =

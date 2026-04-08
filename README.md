@@ -25,7 +25,7 @@ engine for Neovim or CLI environments.
 Requires OCaml and Dune.
 
 ```bash
-dune build @install
+just setup
 ```
 
 ## Usage Constraints
@@ -33,3 +33,10 @@ dune build @install
 This tool does not provide terminal UI elements, ANSI escape formatting, or
 syntax highlighting. Presentation is strictly delegated to the consuming
 application (e.g., Neovim buffer rendering or downstream terminal pagers).
+
+## TODOS
+
+- [ ] think about a stack (perhaps LIFO) based approach for handling the context
+      without a repl
+  - [ ] list a short form of the stack inputs & outputs, so the user can review
+        and rewind quickly

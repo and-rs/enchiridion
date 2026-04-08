@@ -10,13 +10,15 @@ tags: ["cli" "ai" "llm" "exa" "search" "async"]
 homepage: "https://github.com/and-rs/enchiridion"
 bug-reports: "https://github.com/and-rs/enchiridion/issues"
 depends: [
-  "ocaml"
+  "ocaml" {>= "5.4.1"}
+  "dune" {>= "3.20" & >= "3.20.0"}
+  "cohttp-async"
   "async_ssl"
   "yojson"
-  "cohttp-async"
-  "dune" {>= "3.20" & with-dev-setup & = "3.21.0+ox"}
-  "ocamlformat" {with-dev-setup & = "0.26.2+ox"}
-  "ocaml-lsp-server" {with-dev-setup & = "1.19.0+ox"}
+  "lwt" {with-dev-setup & >= "6.1.1"}
+  "utop" {with-dev-setup & >= "2.16.0"}
+  "ocamlformat" {with-dev-setup & = "0.28.1"}
+  "ocaml-lsp-server" {with-dev-setup & >= "1.25.0"}
   "odoc" {with-doc}
 ]
 build: [

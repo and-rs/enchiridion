@@ -1,7 +1,7 @@
-switch := "5.2.0+ox"
+switch := "5.4.1"
 
 switch-create:
-    opam switch create {{switch}} --repos ox=git+https://github.com/oxcaml/opam-repository.git,default
+    opam switch create {{switch}} ocaml-system --repos default
 
 switch-remove:
     opam switch remove {{switch}} --yes
