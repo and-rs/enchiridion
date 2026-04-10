@@ -19,14 +19,29 @@
  (description
   "Enchiridion is a pure Unix dataflow CLI for interacting with LLMs. It parses plain-text Markdown session files, streams Server-Sent Events (SSE) directly to stdout, and dynamically augments context using the Exa search API. Designed strictly for editor integration and terminal command generation.")
  (depends
-  (ocaml (>= "5.4.1"))
-  (dune (>= "3.20.0"))
-  cohttp-async
-  async_ssl
+  (ocaml
+   (>= "5.4.1"))
+  (dune
+   (>= "3.20.0"))
+  cohttp-eio
+  eio_main
+  ca-certs
+  tls-eio
   yojson
-  (lwt (and :with-dev-setup (>= "6.1.1")))
-  (utop (and :with-dev-setup (>= "2.16.0")))
-  (ocamlformat (and :with-dev-setup (= "0.28.1")))
-  (ocaml-lsp-server (and :with-dev-setup (>= "1.25.0"))))
+  core
+  core_unix
+  mirage-crypto-rng-eio
+  (utop
+   (and
+    :with-dev-setup
+    (>= "2.16.0")))
+  (ocamlformat
+   (and
+    :with-dev-setup
+    (= "0.28.1")))
+  (ocaml-lsp-server
+   (and
+    :with-dev-setup
+    (>= "1.25.0"))))
  (tags
   ("cli" "ai" "llm" "exa" "search" "async")))

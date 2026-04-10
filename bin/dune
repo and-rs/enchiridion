@@ -1,5 +1,12 @@
 (executable
  (name main)
  (public_name enchiridion)
- (libraries yojson cohttp-async envlib)
- (preprocess (pps ppx_jane)))
+ (libraries
+  mirage-crypto-rng.unix
+  core_unix.command_unix
+  cohttp-eio
+  eio_main
+  ca-certs
+  tls-eio
+  tools
+  core))

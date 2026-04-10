@@ -1,0 +1,3 @@
+(library
+ (name providers)
+ (libraries eio_main yojson cohttp cohttp-eio))
