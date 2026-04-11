@@ -46,14 +46,22 @@ let command =
        Supports context augmentation via Exa Search. Requires relevant API \
        keys in the environment.")
     Command.Param.(
-      return (fun query test () ->
+      return (fun query test test_completion () ->
           Mirage_crypto_rng_unix.use_default ();
-          run_with_ctx (handle_search query test))
-      <*> flag "-q" (required string)
+          if test_completion then print_endline "testing completion parsin";
+          let open Providers in
+          Eio_main.run @@ fun env ->
+          Openai_compatible.Client.use_sse_parser ~env;
+          match query with
+          | Some s -> run_with_ctx (handle_search s test)
+          | None -> ())
+      <*> flag "-q" (optional string)
             ~doc:"Query; Query for the semantic search"
       <*> flag "--test" no_arg
             ~doc:
               "Testing; Caches the search result in test.json to explore \
-               format & state better")
+               format & state better"
+      <*> flag "--test-completion" no_arg
+            ~doc:"Completion; Read a cached file for parser testing")
 
 let () = Command_unix.run ~version:"v0.0.1" ~build_info:"dev" command
