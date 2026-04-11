@@ -2,7 +2,7 @@ open Cohttp_eio
 
 let api_key = Dotenv.get_setting "EXA_API_KEY"
 
-let exa_search ~sw client (query : string) (key : string) =
+let search_request ~sw client (query : string) (key : string) =
   let init_headers = Http.Header.init_with "Content-Type" "application/json" in
   let headers = Http.Header.add init_headers "x-api-key" key in
   let body =
@@ -45,19 +45,31 @@ let format_terminal list =
         l.highlights)
     list
 
+(* extracting for readability *)
+let read_write_user = 0o644
+let overwrite = `Or_truncate read_write_user
+let atomic_cache_save path data = Eio.Path.save ~create:overwrite path data
+
 let request_handler ~sw ~fs client (query : string) (test : bool) =
   let file_cache = Eio.Path.(fs / "test.json") in
-  let cache_content =
-    if test then try Some (Eio.Path.load file_cache) with Eio.Io _ -> None
+
+  let test_content =
+    if test then
+      match Eio.Path.load file_cache with
+      | exception Eio.Io _ -> None
+      | content -> Some content
     else None
   in
-  match cache_content with
+
+  match test_content with
   | Some j -> print_endline j
   | None ->
-      let resp, body = exa_search ~sw client query api_key in
+      let resp, body = search_request ~sw client query api_key in
       let code = Http.Status.to_int resp.status in
-      let j = Eio.Buf_read.(parse_exn take_all) body ~max_size:max_int in
-      if code < 200 || code >= 300 then print_endline j
+      let json_buf =
+        Eio.Buf_read.(parse_exn take_all) body ~max_size:(5 * 1024 * 1024)
+      in
+      if code < 200 || code >= 300 then print_endline json_buf
       else (
-        Eio.Path.save ~create:(`Or_truncate 0o644) file_cache j;
-        parse_json j |> format_terminal)
+        atomic_cache_save file_cache json_buf;
+        parse_json json_buf |> format_terminal)

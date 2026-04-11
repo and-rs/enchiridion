@@ -21,6 +21,22 @@ let https =
       in
       Tls_eio.client_of_flow ?host tls_config sock)
 
+type 'n ctx = {
+  sw : Eio.Switch.t;
+  fs : Eio.Fs.dir_ty Eio.Path.t;
+  client : Cohttp_eio.Client.t;
+}
+
+let run_with_ctx f =
+  Eio_main.run @@ fun env ->
+  Eio.Switch.run @@ fun sw ->
+  let client = Cohttp_eio.Client.make ~https (Eio.Stdenv.net env) in
+  let ctx = { sw; fs = Eio.Stdenv.fs env; client } in
+  f ctx
+
+let handle_search query test ctx =
+  Exasearch.request_handler ~sw:ctx.sw ~fs:ctx.fs ctx.client query test
+
 let command =
   Command.basic
     ~summary:"Enchiridion: Unix-style AI orchestrator and dataflow pipeline"
@@ -32,11 +48,7 @@ let command =
     Command.Param.(
       return (fun query test () ->
           Mirage_crypto_rng_unix.use_default ();
-          Eio_main.run @@ fun env ->
-          Eio.Switch.run @@ fun sw ->
-          let client = Cohttp_eio.Client.make ~https (Eio.Stdenv.net env) in
-          let fs = Eio.Stdenv.fs env in
-          Exasearch.request_handler ~sw ~fs client query test)
+          run_with_ctx (handle_search query test))
       <*> flag "-q" (required string)
             ~doc:"Query; Query for the semantic search"
       <*> flag "--test" no_arg
