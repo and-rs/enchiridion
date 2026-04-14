@@ -21,19 +21,31 @@ let map_status code body =
 
 type event = { id : string option; event : string option; data : string list }
 
-let empty_event = { id = None; event = None; data = [] }
-
-(* TODO: make tests pass and complete parsing *)
-let sse_parser (buffer : Eio.Buf_read.t) =
+let sse_parser buffer =
   let lines = Eio.Buf_read.lines buffer in
-  let rec unfold_lines s =
+  let empty_event = { id = None; event = None; data = [] } in
+  let is_empty e = e.id = None && e.event = None && e.data = [] in
+
+  let rec unfold s current results =
     match Seq.uncons s with
-    | None -> failwith "unimplemented"
-    (* if String.equal line "" then failwith "unimplemented" *)
-    (* else if String.starts_with ~prefix:":" line then failwith "unimplemented" *)
-    (* else failwith "unimplemented" *)
+    | Some ("", rest) ->
+        if is_empty current then unfold rest empty_event results
+        else
+          let completed = { current with data = List.rev current.data } in
+          unfold rest empty_event (completed :: results)
     | Some (line, rest) ->
-        print_endline line;
-        unfold_lines rest
+        if String.starts_with ~prefix:"data:" line then
+          let len = String.length line in
+          let start_idx = if len > 5 && line.[5] = ' ' then 6 else 5 in
+          let content = String.sub line start_idx (len - start_idx) in
+          let next_event = { current with data = content :: current.data } in
+          unfold rest next_event results
+        else unfold rest current results
+    | None ->
+        let final_results =
+          if is_empty current then results
+          else { current with data = List.rev current.data } :: results
+        in
+        List.rev final_results
   in
-  unfold_lines lines
+  unfold lines empty_event []
