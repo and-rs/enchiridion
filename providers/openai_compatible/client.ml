@@ -19,18 +19,21 @@ let map_status code body =
   | c when c >= 500 -> InternalError body
   | c -> UnknownError (c, body)
 
-let read_cached_test_response ~env =
-  let fs = Eio.Stdenv.fs env in
-  let file_cache = Eio.Path.(fs / "test_completion") in
-  match Eio.Path.load file_cache with
-  | exception Eio.Io _ -> None
-  | file_contents -> Some file_contents
+type event = { id : string option; event : string option; data : string list }
 
+let empty_event = { id = None; event = None; data = [] }
+
+(* TODO: make tests pass and complete parsing *)
 let sse_parser (buffer : Eio.Buf_read.t) =
   let lines = Eio.Buf_read.lines buffer in
-  Seq.iter (fun line -> print_endline line) lines
-
-let use_sse_parser ~env =
-  match read_cached_test_response ~env with
-  | Some s -> sse_parser (Eio.Buf_read.of_string s)
-  | None -> print_endline "uhh nothing?"
+  let rec unfold_lines s =
+    match Seq.uncons s with
+    | None -> failwith "unimplemented"
+    (* if String.equal line "" then failwith "unimplemented" *)
+    (* else if String.starts_with ~prefix:":" line then failwith "unimplemented" *)
+    (* else failwith "unimplemented" *)
+    | Some (line, rest) ->
+        print_endline line;
+        unfold_lines rest
+  in
+  unfold_lines lines

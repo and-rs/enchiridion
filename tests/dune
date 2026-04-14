@@ -1,0 +1,3 @@
+(test
+ (name tests)
+ (libraries providers alcotest eio_main))

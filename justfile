@@ -15,6 +15,15 @@ listen:
 build:
     dune build
 
+test:
+    dune test
+
+# Pass the test name
+[positional-arguments]
+stest *args:
+    #!/usr/bin/env bash
+    dune test -- "$@"
+
 [positional-arguments]
 run *args:
     #!/usr/bin/env bash

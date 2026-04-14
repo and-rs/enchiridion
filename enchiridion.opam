@@ -10,6 +10,7 @@ tags: ["cli" "ai" "llm" "exa" "search" "async"]
 homepage: "https://github.com/and-rs/enchiridion"
 bug-reports: "https://github.com/and-rs/enchiridion/issues"
 depends: [
+  "alcotest"
   "ocaml" {>= "5.4.1"}
   "dune" {>= "3.20" & >= "3.20.0"}
   "cohttp-eio"

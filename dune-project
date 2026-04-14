@@ -19,6 +19,7 @@
  (description
   "Enchiridion is a pure Unix dataflow CLI for interacting with LLMs. It parses plain-text Markdown session files, streams Server-Sent Events (SSE) directly to stdout, and dynamically augments context using the Exa search API. Designed strictly for editor integration and terminal command generation.")
  (depends
+  alcotest
   (ocaml
    (>= "5.4.1"))
   (dune
